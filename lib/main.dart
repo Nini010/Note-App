@@ -1,47 +1,38 @@
-// main.dart
 import 'package:flutter/material.dart';
 import 'package:firebase_core/firebase_core.dart';
-import 'views/login_screen.dart';
-import 'views/signup_screen.dart';
-import 'views/home_screen.dart';
-import 'views/add_edit.dart';
+import 'package:provider/provider.dart';
+import 'package:note_taking_app/viewmodels/auth_viewmodel.dart';
+import 'package:note_taking_app/views/home_screen.dart';
+import 'package:note_taking_app/views/login_screen.dart';
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
   await Firebase.initializeApp();
-  runApp(MyApp());
+
+  runApp(const MyApp());
 }
 
 class MyApp extends StatelessWidget {
-  const MyApp({super.key}); // Use 'super.key' instead of {Key? key}
+  const MyApp({Key? key}) : super(key: key);
 
   @override
   Widget build(BuildContext context) {
-    return MaterialApp(
-      title: 'Note Taking App',
-      theme: ThemeData(
-        brightness: Brightness.light,
-        colorScheme:
-            ColorScheme.fromSeed(seedColor: Colors.teal), // Modern approach
-        textTheme: const TextTheme(
-          headlineLarge: TextStyle(fontSize: 24, fontWeight: FontWeight.bold),
-          bodyLarge: TextStyle(fontSize: 16),
+    return MultiProvider(
+      providers: [
+        ChangeNotifierProvider<AuthViewModel>(
+          create: (context) => AuthViewModel(),
         ),
-        elevatedButtonTheme: ElevatedButtonThemeData(
-          style: ElevatedButton.styleFrom(
-            shape: RoundedRectangleBorder(
-              borderRadius: BorderRadius.circular(12),
-            ),
-          ),
+      ],
+      child: MaterialApp(
+        debugShowCheckedModeBanner: false,
+        home: Consumer<AuthViewModel>(
+          builder: (context, authViewModel, child) {
+            return authViewModel.user != null
+                ? const HomeScreen()
+                : const LoginScreen();
+          },
         ),
       ),
-      initialRoute: '/login',
-      routes: {
-        '/login': (context) => const LoginScreen(),
-        '/signup': (context) => const SignupScreen(),
-        '/home': (context) => const HomeScreen(),
-        '/add': (context) => const AddNoteScreen(),
-      },
     );
   }
 }

@@ -1,25 +1,27 @@
-// services/firestore_service.dart
 import 'package:cloud_firestore/cloud_firestore.dart';
-import '../models/note_model.dart';
+import 'package:note_taking_app/models/note_model.dart';
 
 class FirestoreService {
-  final FirebaseFirestore _db = FirebaseFirestore.instance;
+  final CollectionReference _notesCollection =
+      FirebaseFirestore.instance.collection('notes');
 
-  // Fetch all notes from Firestore
-  Stream<List<Note>> getNotes() {
-    return _db.collection('notes').snapshots().map((snapshot) {
-      return snapshot.docs.map((doc) => Note.fromFirestore(doc)).toList();
-    });
-  }
-
-  // Add a note to Firestore
   Future<void> addNote(Note note) async {
-    final noteRef = await _db.collection('notes').add(note.toMap());
-    // You can handle the generated noteRef.id if needed
+    await _notesCollection.doc(note.id).set(note.toFirestore());
   }
 
-  // Delete a note by its ID
-  Future<void> deleteNote(String id) async {
-    await _db.collection('notes').doc(id).delete();
+  Future<void> updateNote(Note note) async {
+    await _notesCollection.doc(note.id).update(note.toFirestore());
+  }
+
+  Future<void> deleteNote(String noteId) async {
+    await _notesCollection.doc(noteId).delete();
+  }
+
+  Stream<List<Note>> getNotes() {
+    return _notesCollection.snapshots().map((snapshot) {
+      return snapshot.docs
+          .map((doc) => Note.fromFirestore(doc.data() as Map<String, dynamic>))
+          .toList();
+    });
   }
 }
